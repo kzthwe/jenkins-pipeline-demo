@@ -1,16 +1,27 @@
 pipeline {
     agent any
-    
+
     tools {
         maven 'Maven 3.8.1'  // Adjust Maven version as needed
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    echo "Checking out the repository"
+                    checkout scm
+                }
+            }
+        }
+        
         stage('Build') {
             steps {
                 script {
                     echo "Building the application using Maven"
-                    sh 'mvn clean package'
+                    dir('my-app') {  // Change to the directory containing the pom.xml
+                        sh 'mvn clean package'
+                    }
                 }
             }
         }
@@ -19,12 +30,14 @@ pipeline {
             steps {
                 script {
                     echo "Running unit and integration tests"
-                    sh 'mvn test'
+                    dir('my-app') {  // Change to the directory containing the pom.xml
+                        sh 'mvn test'
+                    }
                 }
             }
             post {
                 always {
-                    junit '**/target/surefire-reports/*.xml'  // Publish test results
+                    junit 'my-app/target/surefire-reports/*.xml'  // Publish test results
                 }
             }
         }
@@ -33,8 +46,9 @@ pipeline {
             steps {
                 script {
                     echo "Running code analysis with SonarQube"
-                    // Assuming SonarQube is configured in Jenkins
-                    sh 'mvn sonar:sonar'
+                    dir('my-app') {  // Change to the directory containing the pom.xml
+                        sh 'mvn sonar:sonar'
+                    }
                 }
             }
         }
@@ -43,7 +57,9 @@ pipeline {
             steps {
                 script {
                     echo "Performing security scan with OWASP Dependency Check"
-                    sh 'mvn org.owasp:dependency-check-maven:check'
+                    dir('my-app') {  // Change to the directory containing the pom.xml
+                        sh 'mvn org.owasp:dependency-check-maven:check'
+                    }
                 }
             }
             post {
@@ -62,7 +78,7 @@ pipeline {
                 script {
                     echo "Deploying to staging server"
                     // Example command for deployment (adjust as needed)
-                    sh 'scp target/*.jar user@staging-server:/path/to/deploy'
+                    sh 'scp my-app/target/*.jar user@staging-server:/path/to/deploy'
                 }
             }
         }
@@ -81,7 +97,7 @@ pipeline {
                 script {
                     echo "Deploying to production server"
                     // Example command for deployment (adjust as needed)
-                    sh 'scp target/*.jar user@production-server:/path/to/deploy'
+                    sh 'scp my-app/target/*.jar user@production-server:/path/to/deploy'
                 }
             }
         }
