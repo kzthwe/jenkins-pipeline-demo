@@ -19,7 +19,7 @@ pipeline {
             steps {
                 script {
                     echo "Building the application using Maven"
-                    dir('my-app') {  // Change to the directory containing the pom.xml
+                    dir('my-app') {
                         sh 'mvn clean package'
                     }
                 }
@@ -30,7 +30,7 @@ pipeline {
             steps {
                 script {
                     echo "Running unit and integration tests"
-                    dir('my-app') {  // Change to the directory containing the pom.xml
+                    dir('my-app') {
                         sh 'mvn test'
                     }
                 }
@@ -38,6 +38,11 @@ pipeline {
             post {
                 always {
                     junit 'my-app/target/surefire-reports/*.xml'  // Publish test results
+                    emailext subject: 'Unit and Integration Tests Results',
+                             body: 'The unit and integration tests have completed. Please check the results.',
+                             recipientProviders: [developers()],
+                             attachLog: true,
+                             to: 's224051483@deakin.edu.au'
                 }
             }
         }
@@ -46,9 +51,18 @@ pipeline {
             steps {
                 script {
                     echo "Running code analysis with SonarQube"
-                    dir('my-app') {  // Change to the directory containing the pom.xml
+                    dir('my-app') {
                         sh 'mvn sonar:sonar'
                     }
+                }
+            }
+            post {
+                always {
+                    emailext subject: 'Code Analysis Results',
+                             body: 'The code analysis has completed. Please review the results.',
+                             recipientProviders: [developers()],
+                             attachLog: true,
+                             to: 's224051483@deakin.edu.au'
                 }
             }
         }
@@ -57,7 +71,7 @@ pipeline {
             steps {
                 script {
                     echo "Performing security scan with OWASP Dependency Check"
-                    dir('my-app') {  // Change to the directory containing the pom.xml
+                    dir('my-app') {
                         sh 'mvn org.owasp:dependency-check-maven:check'
                     }
                 }
@@ -65,10 +79,10 @@ pipeline {
             post {
                 always {
                     emailext subject: 'Security Scan Results',
-                             body: 'Security scan has completed.',
+                             body: 'The security scan has completed. Please review the results.',
                              recipientProviders: [developers()],
                              attachLog: true,
-                             to: 'developer@example.com'
+                             to: 's224051483@deakin.edu.au'
                 }
             }
         }
@@ -108,13 +122,13 @@ pipeline {
             emailext subject: 'Pipeline Succeeded',
                      body: 'The pipeline has completed successfully.',
                      recipientProviders: [developers()],
-                     to: 'developer@example.com'
+                     to: 's224051483@deakin.edu.au'
         }
         failure {
             emailext subject: 'Pipeline Failed',
                      body: 'The pipeline has failed. Please check the Jenkins logs.',
                      recipientProviders: [developers()],
-                     to: 'developer@example.com'
+                     to: 's224051483@deakin.edu.au'
         }
     }
 }
