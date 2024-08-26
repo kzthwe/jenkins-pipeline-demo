@@ -1,61 +1,72 @@
 pipeline {
     agent any
 
-    tools {
-        // Make sure the name matches the Maven installation name in Jenkins Global Tool Configuration
-        maven 'Maven 3.9.9'
-    }
-
-    environment {
-        // Define any environment variables if needed
-        MAVEN_OPTS = '-Xms256m -Xmx512m'
-    }
-
     stages {
         stage('Checkout') {
             steps {
-                echo 'Checking out the code from SCM...'
                 checkout scm
             }
         }
-
         stage('Build') {
             steps {
-                echo 'Building the project...'
-                sh 'mvn clean package'
+                echo 'Building the code...'
+                dir('my-app') {
+                    sh 'mvn clean package'
+                }
             }
         }
-
-        stage('Test') {
+        stage('Unit and Integration Tests') {
             steps {
-                echo 'Running unit tests...'
-                sh 'mvn test'
+                echo 'Running unit and integration tests...'
+                dir('my-app') {
+                    sh 'mvn test'
+                }
             }
         }
-
-        stage('Deploy') {
+        stage('Code Analysis') {
             steps {
-                echo 'Deploying the application...'
+                echo 'Performing code analysis...'
+                // Add code analysis steps here
+            }
+        }
+        stage('Security Scan') {
+            steps {
+                echo 'Running security scan...'
+                // Add security scan steps here
+            }
+        }
+        stage('Deploy to Staging') {
+            steps {
+                echo 'Deploying to staging environment...'
                 // Add deployment steps here
-                // Example: sh 'scp target/my-app.jar user@server:/path/to/deploy'
+            }
+        }
+        stage('Integration Tests on Staging') {
+            steps {
+                echo 'Running integration tests on staging...'
+                // Add integration tests on staging environment steps here
+            }
+        }
+        stage('Deploy to Production') {
+            steps {
+                echo 'Deploying to production environment...'
+                // Add production deployment steps here
             }
         }
     }
 
     post {
         success {
-            echo 'Build succeeded!'
+            echo 'Pipeline completed successfully!'
             mail to: 'katiekhinezt@gmail.com',
-                 subject: "Build Succeeded: ${env.JOB_NAME} ${env.BUILD_NUMBER}",
-                 body: "Build succeeded! Check Jenkins for details: ${env.BUILD_URL}"
+                 subject: "Successful Pipeline Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                 body: "The build ${env.BUILD_NUMBER} of job ${env.JOB_NAME} was successful.\n\nCheck Jenkins for details."
         }
         failure {
-            echo 'Build failed!'
+            echo 'Pipeline failed.'
             mail to: 'katiekhinezt@gmail.com',
-                 subject: "Build Failed: ${env.JOB_NAME} ${env.BUILD_NUMBER}",
-                 body: "Build failed! Check Jenkins for details: ${env.BUILD_URL}",
-                 attachLog: true
+                 subject: "Failed Pipeline Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                 body: "The build ${env.BUILD_NUMBER} of job ${env.JOB_NAME} failed.\n\nCheck Jenkins for details."
         }
     }
 }
-
