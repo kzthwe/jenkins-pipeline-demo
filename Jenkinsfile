@@ -1,72 +1,82 @@
 pipeline {
     agent any
-
+    environment {
+        EMAIL_RECIPIENT = 'katiekhinezt@gmail.com'
+    }
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
         stage('Build') {
             steps {
-                echo 'Building the code...'
-                dir('my-app') {
-                    sh 'mvn clean package'
+                script {
+                    echo 'Building the code...'
+                    // Example: sh 'mvn clean package'
                 }
             }
         }
         stage('Unit and Integration Tests') {
             steps {
-                echo 'Running unit and integration tests...'
-                dir('my-app') {
-                    sh 'mvn test'
+                script {
+                    echo 'Running unit and integration tests...'
+                    // Example: sh 'mvn test'
                 }
             }
         }
         stage('Code Analysis') {
             steps {
-                echo 'Performing code analysis...'
-                // Add code analysis steps here
+                script {
+                    echo 'Performing code analysis...'
+                    // Example: sh 'sonar-scanner'
+                }
             }
         }
         stage('Security Scan') {
             steps {
-                echo 'Running security scan...'
-                // Add security scan steps here
+                script {
+                    echo 'Performing security scan...'
+                    // Example: sh 'snyk test'
+                }
             }
         }
         stage('Deploy to Staging') {
             steps {
-                echo 'Deploying to staging environment...'
-                // Add deployment steps here
+                script {
+                    echo 'Deploying to staging server...'
+                    // Example: sh 'deploy-to-staging.sh'
+                }
             }
         }
         stage('Integration Tests on Staging') {
             steps {
-                echo 'Running integration tests on staging...'
-                // Add integration tests on staging environment steps here
+                script {
+                    echo 'Running integration tests on staging...'
+                    // Example: sh 'run-integration-tests.sh'
+                }
             }
         }
         stage('Deploy to Production') {
             steps {
-                echo 'Deploying to production environment...'
-                // Add production deployment steps here
+                script {
+                    echo 'Deploying to production server...'
+                    // Example: sh 'deploy-to-production.sh'
+                }
             }
         }
     }
-
     post {
         success {
-            echo 'Pipeline completed successfully!'
-            mail to: 'katiekhinezt@gmail.com',
-                 subject: "Successful Pipeline Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                 body: "The build ${env.BUILD_NUMBER} of job ${env.JOB_NAME} was successful.\n\nCheck Jenkins for details."
+            emailext(
+                to: "${EMAIL_RECIPIENT}",
+                subject: "Jenkins Pipeline Success: ${currentBuild.fullDisplayName}",
+                body: "The pipeline has completed successfully.\n\nBuild URL: ${env.BUILD_URL}",
+                attachmentsPattern: 'logs/*.log'
+            )
         }
         failure {
-            echo 'Pipeline failed.'
-            mail to: 'katiekhinezt@gmail.com',
-                 subject: "Failed Pipeline Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                 body: "The build ${env.BUILD_NUMBER} of job ${env.JOB_NAME} failed.\n\nCheck Jenkins for details."
+            emailext(
+                to: "${EMAIL_RECIPIENT}",
+                subject: "Jenkins Pipeline Failed: ${currentBuild.fullDisplayName}",
+                body: "The pipeline has failed.\n\nBuild URL: ${env.BUILD_URL}",
+                attachmentsPattern: 'logs/*.log'
+            )
         }
     }
 }
