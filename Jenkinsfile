@@ -1,58 +1,43 @@
 pipeline {
     agent any
     tools {
-        maven 'Maven 3.8.1'  // Adjust Maven version as needed
+        maven 'Maven 3.8.1' // Ensure this matches the name of the Maven installation in Jenkins
     }
     stages {
+        stage('Checkout') {
+            steps {
+                // Checkout the source code from Git repository
+                checkout scm
+            }
+        }
         stage('Build') {
             steps {
-                echo "Building the application using Maven"
-                sh 'mvn clean package'
+                // Navigate to the Maven project directory
+                dir('my-app') {
+                    // Run Maven build command
+                    sh 'mvn clean package'
+                }
             }
         }
-        stage('Unit and Integration Tests') {
+        stage('Test') {
             steps {
-                echo "Running unit and integration tests"
-                sh 'mvn test'
+                dir('my-app') {
+                    // Run Maven test command (optional)
+                    sh 'mvn test'
+                }
             }
         }
-        stage('Code Analysis') {
+        stage('Archive') {
             steps {
-                echo "Running code analysis with SonarQube"
-                sh 'mvn sonar:sonar'
-            }
-        }
-        stage('Security Scan') {
-            steps {
-                echo "Performing security scan with OWASP Dependency Check"
-                sh 'mvn org.owasp:dependency-check-maven:check'
-            }
-        }
-        stage('Deploy to Staging') {
-            steps {
-                echo "Deploying to staging server"
-                sh 'scp target/*.jar user@staging-server:/path/to/deploy'
-            }
-        }
-        stage('Integration Tests on Staging') {
-            steps {
-                echo "Running integration tests on staging"
-                // Commands to run integration tests
-            }
-        }
-        stage('Deploy to Production') {
-            steps {
-                echo "Deploying to production server"
-                sh 'scp target/*.jar user@production-server:/path/to/deploy'
+                // Archive the build artifacts (optional)
+                archiveArtifacts artifacts: 'my-app/target/*.jar', allowEmptyArchive: true
             }
         }
     }
     post {
-        success {
-            echo 'Pipeline succeeded!'
-        }
-        failure {
-            echo 'Pipeline failed!'
+        always {
+            // Perform cleanup or notifications (e.g., email notifications)
+            echo 'Pipeline finished.'
         }
     }
 }
